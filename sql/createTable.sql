@@ -1,0 +1,20 @@
+CREATE DATABASE TaskManager;
+GO
+
+USE TaskManager;
+GO
+
+IF OBJECT_ID('dbo.tasks', 'U') IS NOT NULL
+    DROP TABLE dbo.tasks;
+GO
+
+CREATE TABLE dbo.tasks (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(250) NOT NULL,
+    description NVARCHAR(MAX) NULL,
+    status NVARCHAR(32) NOT NULL,
+    dueDate DATETIME2 NOT NULL,
+    createdAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+);
+GO
