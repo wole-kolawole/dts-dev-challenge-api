@@ -1,5 +1,6 @@
 import { body, param } from 'express-validator';
 import { TaskStatus } from '../models/task';
+import mongoose from 'mongoose';
 
 const taskStatuses: TaskStatus[] = ['pending', 'in-progress', 'completed'];
 
@@ -15,8 +16,12 @@ export const createTaskValidator = [
   body('dueDate').trim().notEmpty().withMessage('Due date is required').isISO8601().withMessage('Due date must be a date'),
 ];
 
+const isValidObjectId = (value: string) => {
+  return mongoose.Types.ObjectId.isValid(value);
+};
+
 export const updateStatusValidator = [
-  param('id').isInt({ min: 1 }).withMessage('Task id must be a number greater than 0'),
+  param('id').custom(isValidObjectId).withMessage('Task id must be a valid MongoDB ObjectId'),
   body('status')
     .trim()
     .notEmpty()
@@ -26,5 +31,5 @@ export const updateStatusValidator = [
 ];
 
 export const idParamValidator = [
-  param('id').isInt({ min: 1 }).withMessage('Task id must be a number greater than 0'),
+  param('id').custom(isValidObjectId).withMessage('Task id must be a valid MongoDB ObjectId'),
 ];

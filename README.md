@@ -1,31 +1,41 @@
-# DTS Developer Challenge Backend
+# Caseworker Backend
 
-This backend is an Express API for Case Worker tasks and uses SQL Server as the database
+This backend is an Express API for Case Worker tasks and uses MongoDB as the database
 
 ## Run locally
 
+### Prerequisites
+- Node.js 16+ installed
+- MongoDB installed and running locally, OR a MongoDB Atlas account
+
+### Setup Steps
+
 1. Create a `.env` file and copy the contents of `.env.example` to it.
-2. Update the connection values in `.env` if necessary.
-   - For trusted Windows auth, set `DB_DRIVER=msnodesqlv8` and `DB_TRUSTED_CONNECTION=true`.
-   - For SQL auth, set `DB_DRIVER=tedious`, `DB_TRUSTED_CONNECTION=false`, `DB_USER`, and `DB_PASSWORD`.
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update the `MONGODB_URI` in `.env`:
+   - **Local MongoDB**: `mongodb://localhost:27017/TaskManager` (default)
+   - **MongoDB Atlas (Cloud)**: `mongodb+srv://username:password@cluster.mongodb.net/TaskManager?retryWrites=true&w=majority`
+
 3. Install dependencies:
    ```bash
    npm install
    ```
-4. Create the database and table with the SQL scripts in `sql/`. You can use `-U <username>` and `-P <password>` in place of `-E` if your SQL instance uses SQL Server Authentication.
+
+4. Seed the database with sample data:
    ```bash
-   sqlcmd -S localhost -E -i sql/createTable.sql
-   sqlcmd -S localhost -E -i sql/sampleData.sql
+   npm run seed
    ```
-5. If using SQL authentication, create an application login and user for the API to use:
-   ```bash
-   sqlcmd -S localhost -E -Q "CREATE LOGIN TaskManagerApp WITH PASSWORD = 'DtsDevChallenge0526!';"
-   sqlcmd -S localhost -E -Q "USE TaskManager; CREATE USER TaskManagerAppUser FOR LOGIN TaskManagerApp; ALTER ROLE db_owner ADD MEMBER TaskManagerAppUser;"
-   ```
-6. Start the API in development mode:
+   This will create the `tasks` collection and insert sample tasks.
+
+5. Start the API in development mode:
    ```bash
    npm run dev
    ```
+
+The API will be available at `http://localhost:4000`
 
 ## API Endpoints
 
@@ -35,17 +45,18 @@ This backend is an Express API for Case Worker tasks and uses SQL Server as the 
 - `GET /api/tasks`
   - Returns all tasks.
 - `GET /api/tasks/:id`
-  - Returns a single task by ID.
+  - Returns a single task by ID (MongoDB ObjectId).
 - `PATCH /api/tasks/:id/status`
   - Updates only the status of a task.
   - Body: `{ status }`
 - `DELETE /api/tasks/:id`
   - Deletes a task.
 
-## Database scripts
+## Database
 
-- `sql/createTable.sql` creates the `tasks` table.
-- `sql/sampleData.sql` inserts a sample task.
+- Uses MongoDB with Mongoose ODM
+- Collections are auto-created by Mongoose
+- Seed script is in `sql/seedMongoDB.js` (use `npm run seed`)
 
 ## Tests
 

@@ -21,7 +21,7 @@ export async function getAllTasks(_req: Request, res: Response, next: NextFuncti
 
 export async function getTaskById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const task = await taskService.getTaskById(id);
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
@@ -34,7 +34,7 @@ export async function getTaskById(req: Request, res: Response, next: NextFunctio
 
 export async function updateTaskStatus(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const task = await taskService.updateTaskStatus(id, req.body);
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
@@ -47,7 +47,16 @@ export async function updateTaskStatus(req: Request, res: Response, next: NextFu
 
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
+    const deleted = await taskService.deleteTask(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
     const deleted = await taskService.deleteTask(id);
     if (!deleted) {
       return res.status(404).json({ error: 'Task not found' });

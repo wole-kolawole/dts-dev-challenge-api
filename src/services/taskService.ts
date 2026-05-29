@@ -1,45 +1,35 @@
-import { execute, query } from '../db/connection';
-import { CreateTaskPayload, Task, UpdateTaskStatusPayload } from '../models/task';
+import { CreateTaskPayload, Task, UpdateTaskStatusPayload, TaskModel } from '../models/task';
 
 export async function createTask(payload: CreateTaskPayload): Promise<Task> {
   payload.description = payload.description ?? '';
-  if (payload.dueDate.split(':').length === 2) {
-    // Add on seconds
-    payload.dueDate += ':00';
-  }
 
-  const records = await query<Task>(
-    `INSERT INTO tasks (title, description, status, dueDate)
-     OUTPUT INSERTED.*
-     VALUES (@title, @description, @status, @dueDate)`,
-    payload,
-  );
+  const task = new TaskModel({
+    title: payload.title,
+    description: payload.description,
+    status: payload.status,
+    dueDate: new Date(payload.dueDate),
+  });
 
-  return records[0];
+  return task.save();
 }
 
 export async function getAllTasks(): Promise<Task[]> {
-  return query<Task>('SELECT * FROM tasks ORDER BY dueDate ASC, id ASC');
+  return TaskModel.find().sort({ dueDate: 1, _id: 1 });
 }
 
-export async function getTaskById(id: number): Promise<Task | null> {
-  const records = await query<Task>('SELECT * FROM tasks WHERE id = @id', { id });
-  return records[0] ?? null;
+export async function getTaskById(id: string): Promise<Task | null> {
+  return TaskModel.findById(id);
 }
 
-export async function updateTaskStatus(id: number, payload: UpdateTaskStatusPayload): Promise<Task | null> {
-  const records = await query<Task>(
-    `UPDATE tasks
-     SET status = @status,
-         updatedAt = GETDATE()
-     OUTPUT INSERTED.*
-     WHERE id = @id`,
-    { id, status: payload.status },
+export async function updateTaskStatus(id: string, payload: UpdateTaskStatusPayload): Promise<Task | null> {
+  return TaskModel.findByIdAndUpdate(
+    id,
+    { status: payload.status },
+    { new: true }
   );
-  return records[0] ?? null;
 }
 
-export async function deleteTask(id: number): Promise<boolean> {
-  const result = await execute('DELETE FROM tasks WHERE id = @id', { id });
-  return result.rowsAffected[0] > 0;
+export async function deleteTask(id: string): Promise<boolean> {
+  const result = await TaskModel.deleteOne({ _id: id });
+  return result.deletedCount > 0;
 }
